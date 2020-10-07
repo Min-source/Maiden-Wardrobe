@@ -1,5 +1,6 @@
 <template>
   <div class="dashboard-container">
+    <h1>项目介绍</h1>
     <div class="dashboard-text">name: {{ name }}</div>
   </div>
 </template>
