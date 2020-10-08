@@ -5,7 +5,9 @@
       <el-button type="primary" size="small" @click="dialogVisible = true"
         >添加</el-button
       >
-      <el-button type="danger" size="small">批量删除</el-button>
+      <el-button type="danger" size="small" @click="selectDeleteHandler()"
+        >批量删除</el-button
+      >
       <el-input
         placeholder="请输入内容"
         v-model="query_id"
@@ -30,6 +32,9 @@
         label-width="100px"
         class="demo-ruleForm"
       >
+        <el-form-item label="序号" prop="id">
+          <el-input v-model="ruleForm.id" disabled></el-input>
+        </el-form-item>
         <el-form-item label="用户名" prop="username">
           <el-input v-model="ruleForm.username"></el-input>
         </el-form-item>
@@ -61,9 +66,13 @@
           （可选）
         </el-form-item>
         <el-form-item label="状态" prop="status">
-          <el-switch v-model="ruleForm.status" active-color="#13ce66"
-    inactive-color="#ff4949" active-value="启用"
-    inactive-value="禁用"></el-switch>
+          <el-switch
+            v-model="ruleForm.status"
+            active-color="#13ce66"
+            inactive-color="#ff4949"
+            active-value="启用"
+            inactive-value="禁用"
+          ></el-switch>
           {{ ruleForm.status }}
         </el-form-item>
         <el-form-item label="头像" prop="imgPhoto">
@@ -134,8 +143,8 @@ export default {
       }
     };
     var validateTel = (rule, value, callback) => {
-      var pattern=/^[1]+[3,8]+\d{9}$/g
-      var res=pattern.test(value)
+      var pattern = /^[1]+[3,8]+\d{9}$/g;
+      var res = pattern.test(value);
       if (!res) {
         callback(new Error("请输入正确格式"));
       } else {
@@ -145,6 +154,7 @@ export default {
     return {
       query_id: "",
       dialogVisible: false,
+      ids: [],
       ruleForm: {
         username: "",
         realname: "",
@@ -168,14 +178,6 @@ export default {
         ],
         checkPass: [{ validator: validatePass, trigger: "blur" }],
         telephone: [{ validator: validateTel, trigger: "blur" }],
-        type: [
-          {
-            type: "array",
-            required: true,
-            message: "请至少选择一个活动性质",
-            trigger: "change",
-          },
-        ],
         status: [{ required: true, message: "请选择状态", trigger: "change" }],
       },
     };
@@ -187,19 +189,60 @@ export default {
     ...mapState("customer", ["tableData"]),
   },
   methods: {
-    ...mapActions("customer", ["findAll", "findById"]),
+    ...mapActions("customer", [
+      "findAll",
+      "findById",
+      "addData",
+      "deleteData",
+      "batchDelete",
+    ]),
     //当复选按钮发生变化
     handleSelectionChange(val) {
       this.ids = val.map((item) => item.id);
+    },
+    //批量删除
+    selectDeleteHandler() {
+      this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.batchDelete(this.ids);
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
     },
     //根据用户id查询
     handleFindById(query_id) {
       this.findById(query_id);
     },
     //删除
-    handleDelete(id) {},
+    handleDelete(id) {
+      this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.deleteData(id);
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除",
+          });
+        });
+    },
     //修改
-    handleUpdate(row) {},
+    handleUpdate(row) {
+      this.dialogVisible = true;
+      this.ruleForm = row;
+    },
     //模态框重置
     resetForm(ruleForm) {
       this.$refs[ruleForm].resetFields();
@@ -208,7 +251,12 @@ export default {
     submitForm(ruleForm) {
       this.$refs[ruleForm].validate((valid) => {
         if (valid) {
-          alert("submit!");
+          this.$message({
+            message: "添加成功",
+            type: "success",
+          });
+          this.addData(this.ruleForm);
+          this.dialogVisible = false;
         } else {
           console.log("error submit!!");
           return false;

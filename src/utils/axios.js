@@ -16,9 +16,9 @@ myAxios.defaults.headers.common['Authorization'] = getToken()
 myAxios.interceptors.response.use(config => {
   //手动将参数转换为查询字符串，为呼应Content-type="application/x-www-form-urlencoded"
   console.log("config:",config);
-  if (config.method === "post") {
-    config.data = qs.stringify(config.data)
-  }
+  // if (config.method === "post") {
+  //   config.data = qs.stringify(config.data)
+  // }
   return config;
 }, error => {
   return Promise.reject(error);

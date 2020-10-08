@@ -2,7 +2,6 @@ import { get } from '../../utils/axios'
 import { post } from '../../utils/axios'
 import Vue from 'vue'
 import ElementUI from 'element-ui'
-import { from } from 'core-js/fn/array'
 Vue.use(ElementUI)
 const customer = {
     namespaced: true,
@@ -19,7 +18,7 @@ const customer = {
         //加载顾客信息
         findAll(context) {
             get("/customer/findAll").then((resp) => {
-                // console.log(resp);
+                console.log(resp);
                 context.commit("resetTabledata", resp.data);
             })
         },
@@ -32,14 +31,51 @@ const customer = {
             })
         },
         //删除
-        
+        deleteData(context, id) {
+            get("customer/deleteById?id=" + id).then((resp) => {
+                if (resp.status == 200) {
+                    ElementUI.Message({
+                        showClose: true,
+                        message: resp.statusText,
+                        type: "success",
+                    });
+                    context.dispatch("findAll")
+                } else {
+                    ElementUI.Message({
+                        showClose: true,
+                        message: resp.statusText,
+                        type: "error",
+                    });
+                }
+            })
+        },
         //添加并修改
-        addData(context,fromData){
-            post("/customer/saveOrUpdate",fromData).then((resp)=>{
-                console.log(resp);
+        addData(context, fromData) {
+            post("/customer/saveOrUpdate", fromData).then((resp) => {
+                // console.log(resp);
                 context.dispatch("findAll")
             })
-        }
+        },
+        //批量删除
+        batchDelete(context, ids) {
+            post("/customer/batchDelete?ids=" + ids).then((resp) => {
+                // console.log(resp);
+                if (resp.status == 200) {
+                    ElementUI.Message({
+                        showClose: true,
+                        message: resp.statusText,
+                        type: "success",
+                    });
+                    context.dispatch("findAll")
+                } else {
+                    ElementUI.Message({
+                        showClose: true,
+                        message: resp.statusText,
+                        type: "error",
+                    });
+                }
+            })
+        },
     },
 
 }
